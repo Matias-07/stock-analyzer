@@ -1,24 +1,45 @@
 import yfinance as yf
+import pandas as pd
 from pathlib import Path
+
+#configuracion 
 
 ticker = "AAPL"
 period = "6mo"
 
+#descargar datos
 data = yf.download(ticker, period=period, progress=False)
 
-#elimina el nivel de columnas
-data.columns = data.columns.droplevel(1)
+#caso multiindex
 
-#convierte indice en columna
+if isinstance(data.columns, pd.MultiIndex):
+    data.columns = data.columns.droplevel(1)
+
+#pasar date a columna
 data = data.reset_index()
 data.columns.name = None
 
-print(data.head())
-print(data.shape)
-print(type(data))
-print(data.index)
-print(data.columns) 
+#retorno diario
+data["DailyReturn"] = data["Close"].pct_change()
 
-Path("outputs").mkdir(exist_ok = True)
-data.to_csv("outputs/AAPL_6mo_clean.csv", index=False)
-print("saved output/AAPL_6mo_clean.csv")
+
+#mostrar datos
+print("preview (head):")
+print(data.head())
+print("\nShape (rows, cols):", data.shape)
+print("Type:", type(data))
+print("Index:", data.index)
+print("Columns:", list(data.columns))
+print("\nClose + DailyReturn (primeras 10 filas):")
+print(data[["Date", "Close", "DailyReturn"]].head(10))
+print("\nDailyReturn stats:")
+print(data["DailyReturn"].describe())
+
+#guardar datos
+out_dir = Path("outputs")
+out_dir.mkdir(exist_ok=True)
+
+filename = out_dir / f"{ticker}_{period}_clean.csv"
+data.to_csv(filename, index=False)
+
+print(f"\nData saved to: {filename}")
