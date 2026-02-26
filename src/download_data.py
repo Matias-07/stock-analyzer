@@ -22,6 +22,11 @@ data.columns.name = None
 #retorno diario
 data["DailyReturn"] = data["Close"].pct_change()
 
+#porcentaje de retorno diario
+data["DailyReturnPct"] = (data["DailyReturn"] * 100).round(3)
+
+#volatilidad
+data["Volatility20d"] = data["DailyReturn"].rolling(20).std()
 
 #mostrar datos
 print("preview (head):")
@@ -32,8 +37,12 @@ print("Index:", data.index)
 print("Columns:", list(data.columns))
 print("\nClose + DailyReturn (primeras 10 filas):")
 print(data[["Date", "Close", "DailyReturn"]].head(10))
+print("\nClose + DailyReturn en % (primeras 10 filas):")
+print(data[["Date", "Close", "DailyReturnPct"]].head(10))
 print("\nDailyReturn stats:")
 print(data["DailyReturn"].describe())
+print("\nVolatility20d (primeras 25 filas):")
+print(data[["Date", "DailyReturn", "Volatility20d"]].head(25))
 
 #guardar datos
 out_dir = Path("outputs")
