@@ -28,21 +28,32 @@ data["DailyReturnPct"] = (data["DailyReturn"] * 100).round(3)
 #volatilidad
 data["Volatility20d"] = data["DailyReturn"].rolling(20).std()
 
-#mostrar datos
-print("preview (head):")
-print(data.head())
-print("\nShape (rows, cols):", data.shape)
-print("Type:", type(data))
-print("Index:", data.index)
+#medidas moviles simples
+data["SMA20"] = data["Close"].rolling(20).mean()
+data["SMA50"] = data["Close"].rolling(50).mean()
+
+#señal de cruce alcista
+data["Signal"] = data["SMA20"] > data["SMA50"]
+
+#cruce
+data["CrossUp"] = ((data["SMA20"] > data["SMA50"]) & (data["SMA20"].shift(1) <= data["SMA50"].shift(1)))
+
+#cruce bajista
+data["CrossDown"] = ((data["SMA20"] < data["SMA50"]) & (data["SMA20"].shift(1) >= data["SMA50"].shift(1)))
+
+#mostrar datos 
+print("\n===== DATA SUMMARY =====")
+print("Shape:", data.shape)
 print("Columns:", list(data.columns))
-print("\nClose + DailyReturn (primeras 10 filas):")
-print(data[["Date", "Close", "DailyReturn"]].head(10))
-print("\nClose + DailyReturn en % (primeras 10 filas):")
-print(data[["Date", "Close", "DailyReturnPct"]].head(10))
-print("\nDailyReturn stats:")
+print("\nPrimeras 5 filas:")
+print(data.head())
+
+print("\nDaily Return stats:")
 print(data["DailyReturn"].describe())
-print("\nVolatility20d (primeras 25 filas):")
-print(data[["Date", "DailyReturn", "Volatility20d"]].head(25))
+
+print("\nCruces detectados:")
+print("Golden Cross:", int(data["CrossUp"].sum()))
+print("Death Cross:", int(data["CrossDown"].sum()))
 
 #guardar datos
 out_dir = Path("outputs")
